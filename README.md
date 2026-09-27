@@ -1,5 +1,6 @@
 # UXDL: User Experience Description Language
 
+[![Web Editor: uxdl.dev](https://img.shields.io/badge/Web_Editor-uxdl.dev-6366f1.svg?style=flat)](https://uxdl.dev)
 [![CI](https://github.com/faisaladi/uxdl/actions/workflows/ci.yml/badge.svg)](https://github.com/faisaladi/uxdl/actions)
 [![Format: UXDL 0.1](https://img.shields.io/badge/UXDL-0.1-blue.svg)](spec/specification.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -7,6 +8,19 @@
 **UXDL is a human- and machine-readable specification language for modeling observable product behavior.**
 
 It replaces ambiguous prose PRDs with a deterministic behavioral contract: **screens, states, actions, and relations**. UXDL provides an authoritative bridge connecting Product Managers, Designers, Software Engineers, and Autonomous AI Coding Agents.
+
+🚀 **Try the official visual editor online at [uxdl.dev](https://uxdl.dev)** — a local-first canvas for authoring, visualizing, and generating UXDL without writing YAML by hand.
+
+---
+
+## Official Web Editor: [uxdl.dev](https://uxdl.dev)
+
+While UXDL is a portable, plaintext specification language that can be authored in any code editor, [**uxdl.dev**](https://uxdl.dev) is the official web application built to author, visualize, and inspect UXDL projects:
+
+- **Canvas & Flow Views**: Multi-lane layout and top-down activity diagrams illustrating user journeys, state transitions, and branches.
+- **Guided AI PRD Importer**: Convert messy requirements and conversational product briefs into validated, profile-compliant UXDL contracts.
+- **Local-First & Private**: Runs directly in the browser via IndexedDB with zero mandatory login or cloud dependency.
+- **Handoff & Single-File Export**: Deterministically compose multi-file manifests into single-file portable contracts or read-only engineering briefs.
 
 ---
 
@@ -53,7 +67,8 @@ screens:
             path: happy
             when: credentials are valid
           failure:
-            to: login.states.invalid_credentials
+            to: login
+            state: invalid_credentials
             path: error
             when: credentials invalid
 ```
@@ -92,8 +107,10 @@ uxdl/
 
 ## Quickstart
 
-### 1. Validate a UXDL Document or Multi-File Project
+### 1. Author with the Web Editor
+Open [**uxdl.dev**](https://uxdl.dev) directly in your browser to model products visually or paste a PRD into the Guided Importer.
 
+### 2. Validate Locally with Python
 ```bash
 # Clone the repository
 git clone https://github.com/faisaladi/uxdl.git
@@ -106,8 +123,7 @@ pip install -r tools/requirements.txt
 python3 tools/validate.py examples/team-workspace/uxdl.project.yaml --strict
 ```
 
-### 2. Use with AI Coding Assistants
-
+### 3. Use with AI Coding Assistants
 UXDL publishes [`llms.txt`](llms.txt) and [`llms-full.txt`](llms-full.txt) directly in this repository.
 You can reference `llms.txt` in Cursor, Claude Code, Windsurf, or Antigravity to teach your agent how to generate and adhere to UXDL contracts.
 
