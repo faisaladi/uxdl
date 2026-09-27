@@ -1,0 +1,48 @@
+uxdl_project: '0.1'
+uxdl: '0.1'
+app: TeamWorkspace
+title: Team Workspace & Subscription Management
+metadata:
+  description: Synthetic reference project showcasing multi-file UXDL 0.1 modular
+    composition.
+  version: 1.0.0
+  entry_screens:
+  - landing
+  - login
+  open_questions: {}
+  specification_gaps: {}
+  product_brief:
+    nutshell: A collaborative workspace platform with self-serve onboarding, team
+      management, and subscription billing.
+    background: Teams need an intuitive, reliable system to organize members, manage
+      seats, and subscribe to premium plans.
+    solution: A modern web application featuring streamlined signup, email invitations,
+      and billing management.
+  goals:
+  - Provide an unassisted 60-second onboarding flow for new workspace creators.
+  - Deliver self-serve seat management and transparent upgrade paths.
+  success_metrics:
+  - 90% of signups successfully invite at least one colleague within 48 hours.
+  - Zero support tickets caused by ambiguous billing plan transitions.
+  delivery_plan:
+  - phase: 'Phase 1: Workspace Core'
+    slices:
+    - visitor_to_active_user
+    - invite_team_member
+  - phase: 'Phase 2: Monetization & Growth'
+    slices:
+    - pro_upgrade_journey
+    - subscription_cancellation
+modules:
+- id: actors
+  file: actors.uxdl.yaml
+- id: auth
+  file: flows/auth.uxdl.yaml
+- id: team
+  file: flows/team.uxdl.yaml
+- id: billing
+  file: flows/billing.uxdl.yaml
+- id: onboarding_slice
+  file: slices/onboarding.uxdl.yaml
+- id: subscription_slice
+  file: slices/subscription.uxdl.yaml

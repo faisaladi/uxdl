@@ -1,0 +1,53 @@
+uxdl_module: '0.1'
+id: subscription_slice
+extensions:
+  uxdl_slices:
+    slices:
+      pro_upgrade_journey:
+        name: Team Admin Pro Plan Upgrade Journey
+        type: journey
+        actor: admin
+        metadata:
+          flow_hint:
+            start: billing_overview
+            goal:
+            - billing_overview
+        screens:
+        - billing_overview
+        - plan_selection
+        - checkout_gateway
+        acceptance:
+          views_pricing: Admin clicks upgrade to review plan tiers.
+          initiates_checkout: Admin selects Pro plan and redirects to checkout gateway.
+          payment_verified: External webhook confirms payment and activates Pro tier.
+        coverage:
+          acceptance:
+            views_pricing:
+            - billing_overview
+            - billing_overview.actions.click_upgrade
+            - plan_selection
+            initiates_checkout:
+            - plan_selection.actions.select_pro_plan
+            - checkout_gateway
+            payment_verified:
+            - checkout_gateway.actions.confirm_payment
+      subscription_cancellation:
+        name: Subscription Cancellation Story
+        type: story
+        actor: admin
+        metadata:
+          covers_requirements:
+          - self_serve_cancellation
+          depends_on:
+          - invite_team_member
+        screens:
+        - billing_overview
+        - cancel_survey
+        acceptance:
+          completes_retention_survey: Admin submits cancellation survey and downgrades
+            to free tier.
+        coverage:
+          acceptance:
+            completes_retention_survey:
+            - billing_overview.actions.click_cancel
+            - cancel_survey.actions.confirm_cancellation

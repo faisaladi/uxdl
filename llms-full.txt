@@ -1,0 +1,1440 @@
+# UXDL 0.1 Full Specification Bundle
+
+
+
+---
+# File: spec/overview.md
+---
+
+# 01. Overview and Principles: UXDL
+
+> **Current direction:** UXDL 0.1 — loose content, strict addressability.
+
+## 1. The Problem Space
+In modern digital product development, there is a fundamental disconnect between Design, Development, and Analytics.
+- **Design Tools (Figma):** Are inherently visual and static. "App Flows" are represented by vector arrows drawn between hundreds of duplicated screens to represent different states. When a flow changes, the manual wiring breaks.
+- **Analytics (Mixpanel/Amplitude):** Assume flat, linear funnels. They struggle to visualize contextual variations (e.g., how the UI changes dynamically based on an earlier action) without complex, manual tracking plans.
+- **Development & Legacy Apps:** Over time, as apps grow, PMs and Developers lose track of the holistic user journey. There is no single source of truth that defines *what* happens when a user clicks a button in a specific state. The "documentation" often becomes the source code itself, which is unreadable to non-engineers.
+
+**The result:** PMs lose track of legacy app journeys, designers waste time drawing arrows, and developers build logic that doesn't match the original design intent.
+
+## 2. Product hypothesis
+
+PRDs may be detailed and still leave designers, engineers, QA, researchers, and analysts interpreting product behavior differently. UXDL reduces that ambiguity by giving each screen, action, and relation a stable address.
+
+The first product hypothesis is deliberately narrow:
+
+> When a team can point to the same addressable UX elements and see their relations, it finds missing or ambiguous behavior earlier and needs fewer clarification cycles during delivery.
+
+UXDL can serve as the canonical behavioral PRD while complementing research repositories, design files, technical RFCs, test plans, and analytics tools. Open metadata lets teams attach the context they need without forcing every discipline into one closed schema.
+
+## 3. Possible use cases
+
+1. **Cross-functional behavior review:** A team reviews the same screens, actions, and relations before implementation.
+2. **Compact product definition:** A PM captures the behavior-heavy part of a requirement with fewer repeated words than a traditional narrative document.
+3. **Reverse documentation:** A person or tool maps an existing product into a reviewable flow.
+4. **Template-guided discovery:** Checkout, authentication, onboarding, and other templates prompt authors about commonly missed paths.
+5. **Downstream automation:** Analytics plans, QA cases, design references, tickets, or AI-assisted drafts may later use stable UXDL identifiers.
+6. **Story and task slices:** A natural-language story or external task can be mapped onto the relevant UXDL behavior without copying screens or requiring the author to maintain a path list.
+
+## 4. Design principles
+
+1. **Loose content, strict addressability:** IDs and references are predictable; contextual metadata is open.
+2. **Human-readable first:** The syntax remains understandable YAML even when an editor is the normal authoring surface.
+3. **Progressive detail:** A useful draft does not require a complete formal product model.
+4. **Visual-first authoring:** Drawing, forms, placeholders, and templates help people define behavior without editing YAML directly.
+5. **Advisory completeness:** The system distinguishes objective errors from review warnings and template suggestions.
+6. **Contextual state awareness:** A screen can optionally expose addressable loading, empty, success, error, or domain-specific states.
+7. **Tool agnostic:** UXDL is not tied to a framework, design tool, analytics vendor, or implementation language.
+8. **Token conscious, not context destructive:** Compactness is valuable only when the flow remains clear enough to prevent misunderstanding.
+9. **One requirement, visible in context:** Local requirements belong on the nearest behavior element; cross-path criteria belong to a slice and appear on related screens through generated coverage rather than duplication.
+
+## 5. Success criteria for 0.x
+
+- **Shared interpretation:** Reviewers consistently identify the same intended behavior from the flow.
+- **Earlier gap detection:** Teams find missing paths and unresolved decisions before implementation.
+- **Lower clarification cost:** Design, engineering, and QA require fewer requirement clarification cycles.
+- **Fast authoring:** A user can create and revise a useful flow without learning a formal language.
+- **Open context:** Teams attach security, analytics, research, design, QA, or engineering context without breaking the parser.
+- **Compactness:** UXDL reduces repeated prose while retaining information needed for delivery.
+- **Real-user evidence:** A stable `1.0` is not declared until the format and editor have been tested across multiple teams and product domains.
+
+
+---
+# File: spec/specification.md
+---
+
+# 02. UXDL 0.1 Specification
+
+> **Status:** Working draft for editor prototyping and user validation.
+>
+> UXDL 0.1 intentionally keeps content flexible while making product behavior addressable. The design principle is **loose content, strict addressability**.
+
+## 1. Purpose
+
+UXDL is a compact, human-readable description of a user experience flow. It gives product managers, designers, engineers, QA, researchers, and analysts stable identifiers for the same screens, states, actions, and relations.
+
+UXDL is:
+
+- a shared map of product behavior;
+- readable YAML;
+- visualizable as a graph;
+- open to any domain-specific context through `metadata`;
+- suitable for deterministic structural checks and human review.
+
+UXDL is not:
+
+- a replacement for every PRD, research report, design file, or technical RFC;
+- an executable programming language;
+- a component, layout, or styling specification;
+- a guarantee that a product decision is correct or complete.
+
+## 2. Design rules
+
+1. **Stable identifiers:** structural elements use stable IDs so teams can reference the same behavior.
+2. **Local ownership:** actions belong to screens; relations belong to actions.
+3. **Open metadata:** contextual content can be a string, list, or nested object.
+4. **Progressive detail:** actors, states, groups, conditions, analytics, security, and technical details are optional.
+5. **Visual-first authoring:** people may use an editor instead of writing YAML directly.
+6. **Advisory completeness:** templates and prompts may suggest missing paths without rejecting intentional product choices.
+7. **Portable composition:** large projects may use the optional multi-file project profile while preserving one deterministic assembled UXDL 0.1 document.
+
+## 3. Minimal document
+
+```yaml
+# UXDL 0.1 Specification
+# Full Standard & AI Prompt Spec: https://uxdl.dev/docs
+# Connect AI Agents via MCP Server: https://uxdl.dev/mcp
+
+uxdl: "0.1"
+app: Example App
+title: Sign-in flow
+
+screens:
+  sign_in:
+    name: Sign In
+    actions:
+      submit:
+        relations:
+          success:
+            to: home
+
+  home:
+    name: Home
+```
+
+The root object MUST contain:
+
+- `uxdl`: the supported format version. For this draft it MUST be `"0.1"`.
+- `screens`: a dictionary keyed by screen ID.
+
+The root MAY contain:
+
+- `app`: product or service name.
+- `title`: document or flow name.
+- `metadata`: open document-level context.
+- `actors`: addressable human or system participants.
+- `groups`: visual or conceptual collections of screens.
+- `layout`: editor-managed positions and preferences.
+- `extensions`: namespaced tool-specific data.
+
+Unknown root keys SHOULD produce a warning rather than data loss.
+
+## 4. Identifiers and references
+
+IDs SHOULD use lowercase `snake_case` and match:
+
+```text
+^[a-z0-9][a-z0-9_]*$
+```
+
+IDs are unique within their parent dictionary. Fully qualified references are formed from ownership:
+
+```text
+sign_in
+sign_in.states.invalid_otp
+sign_in.actions.submit
+sign_in.actions.submit.relations.invalid
+```
+
+Renaming an ID is a semantic change. Editors SHOULD update references or warn before the rename is applied.
+
+## 5. Metadata
+
+Every addressable element MAY contain `metadata`. Its contents are intentionally open:
+
+```yaml
+metadata:
+  description: Authenticate a partner with email OTP.
+  security:
+    - OTP expires after 10 minutes.
+    - Lock the account after 5 failed attempts.
+  analytics:
+    event: otp_submitted
+    properties: [organization_id, attempt_number]
+  design:
+    figma: https://example.com/design-reference
+  qa:
+    - Verify paste and autofill.
+    - Verify expiration at exactly 10 minutes.
+```
+
+A core parser MUST preserve metadata without interpreting or deleting unknown keys. Templates and plugins MAY understand particular metadata shapes, but those shapes are not core UXDL requirements.
+
+Structural keys are reserved outside `metadata`. Domain-specific keys SHOULD NOT be placed beside structural keys because they may collide with future versions.
+
+## 6. Actors
+
+Actors are optional and keyed by stable ID:
+
+```yaml
+actors:
+  partner:
+    name: Travel Partner
+    type: human
+    metadata:
+      roles: [owner, admin, booking, finance]
+
+  auth_service:
+    name: Authentication Service
+    type: system
+```
+
+Reserved actor keys:
+
+- `name`: human-readable label.
+- `type`: recommended values are `human`, `system`, or `external`.
+- `metadata`: open context.
+
+An action MAY reference an actor ID. Missing actor references are warnings in 0.1 because actors are optional.
+
+## 7. Screens
+
+Screens are the primary addressable surfaces:
+
+```yaml
+screens:
+  sign_in:
+    name: Partner Sign In
+    type: page
+    metadata:
+      description: Public email OTP sign-in.
+```
+
+Reserved screen keys:
+
+- `name`: human-readable label; REQUIRED.
+- `type`: free-text surface classification such as `page`, `modal`, `sheet`, `drawer`, `panel`, `header`, `sidebar`, or `overlay`.
+- `parent`: optional host screen ID for a sub-screen, modal, sheet, drawer, panel, or overlay.
+- `states`: optional dictionary of addressable states.
+- `actions`: optional dictionary of addressable actions.
+- `metadata`: open context (including `requirements`).
+
+Screen types are not a closed enum in 0.1.
+
+For detailed architectural guidance on deciding when to model an element as a Sub-Screen vs. a Requirement, see:
+
+the *Sub-Screen vs. Requirement Modeling Guide*
+
+For step-by-step guidance on deriving Unit, Integration/E2E, and Regression test suites from UXDL specifications, see:
+
+[`64_Generating_Test_Cases_from_UXDL_Guide.md`](../guides/test-generation.md)
+
+## 8. States
+
+States describe meaningful variations of a screen. They are optional and may use compact or expanded form.
+
+Compact:
+
+```yaml
+states:
+  default: Ready for input
+  invalid_otp: The entered OTP is invalid
+```
+
+Expanded:
+
+```yaml
+states:
+  invalid_otp:
+    name: Invalid OTP
+    metadata:
+      message: The code is incorrect or expired.
+      recovery: Let the user retry or request a new code.
+```
+
+An expanded state MAY contain:
+
+- `name`: human-readable label.
+- `metadata`: open context.
+
+Parsers MUST preserve other state content as metadata-compatible content and SHOULD warn when it collides with a reserved structural key.
+
+## 9. Actions
+
+Actions describe something a human or system can do from a screen:
+
+```yaml
+actions:
+  submit_otp:
+    name: Submit OTP
+    actor: partner
+    metadata:
+      trigger: Submit button
+    relations: {}
+```
+
+Reserved action keys:
+
+- `name`: optional human-readable label; defaults to a title-cased ID.
+- `actor`: optional actor ID.
+- `relations`: dictionary of addressable relations.
+- `metadata`: open context.
+
+An action without relations is valid while drafting and produces an advisory warning.
+
+## 10. Relations
+
+A relation describes what follows an action. Relations are dictionaries keyed by stable ID:
+
+```yaml
+actions:
+  submit_otp:
+    relations:
+      valid:
+        to: product_list
+        when: OTP is valid
+        path: happy
+
+      invalid:
+        to: sign_in
+        state: invalid_otp
+        when: OTP is invalid
+        path: error
+        metadata:
+          behavior: Preserve the entered email.
+```
+
+Reserved relation keys:
+
+- `to`: target screen ID.
+- `state`: optional state ID on the target screen.
+- `external`: external destination when the relation leaves the modeled experience.
+- `end`: `true` when the journey intentionally terminates.
+- `when`: optional human-readable condition.
+- `path`: optional free-text classification such as `happy`, `error`, `edge`, or `fallback`.
+- `metadata`: open context.
+
+A relation MUST declare exactly one destination form:
+
+1. `to`, optionally with `state`;
+2. `external`; or
+3. `end: true`.
+
+Conditions remain natural language in 0.1. They are not executable expressions and do not require a formal condition registry.
+
+## 11. Groups
+
+Groups organize screens without changing behavior:
+
+```yaml
+groups:
+  authentication:
+    name: Authentication
+    screens: [sign_in, verify_email]
+    metadata:
+      owner: Identity team
+```
+
+Reserved group keys:
+
+- `name`: human-readable label.
+- `screens`: list of screen IDs.
+- `metadata`: open context.
+
+Groups do not own screens and cannot change relation semantics.
+
+## 12. Layout
+
+`layout` stores editor-managed presentation data:
+
+```yaml
+layout:
+  direction: left_to_right
+  positions:
+    sign_in: {x: 120, y: 240}
+    home: {x: 520, y: 240}
+```
+
+Layout is optional and MUST NOT be interpreted as product behavior. Tools SHOULD preserve unknown layout keys.
+
+## 13. Validation
+
+### Errors
+
+Errors are deterministic and prevent reliable parsing or rendering:
+
+- invalid YAML;
+- unsupported or missing `uxdl`;
+- missing `screens`;
+- invalid or duplicate IDs;
+- screen without `name`;
+- broken `parent`, `to`, target `state`, or group screen reference;
+- relation with no destination or multiple destination forms;
+- invalid structural value type.
+
+### Warnings
+
+Warnings identify potentially incomplete work but do not make the document invalid:
+
+- unreachable screen;
+- screen without actions;
+- action without relations;
+- actor reference not declared;
+- screen with only self-relations;
+- unknown structural key outside `metadata` or `extensions`.
+
+Entry screens and intentional terminal screens may be declared in metadata or accepted explicitly by an editor.
+
+### Template prompts
+
+Templates provide contextual questions rather than universal rules:
+
+- What happens when this request fails?
+- Does a conditional relation need an alternative path?
+- Can the actor cancel or retry?
+- What happens when data is empty, loading, or offline?
+- Who is allowed to perform this action?
+- How will success be measured?
+- What evidence or design reference supports this decision?
+
+## 14. Canonical example
+
+The complete uxdl.dev product project is maintained in `examples/team-workspace/uxdl.project.yaml` (with the frozen v0.1 single-file snapshot archived in `archive/12_UXFlow_SaaS.v0.1.snapshot.uxdl.yaml`).
+
+The non-normative UX research example is:
+
+[`auth.uxdl.yaml`](../examples/team-workspace/flows/auth.uxdl.yaml)
+
+It demonstrates evidence, interaction notes, assessments, and opportunities
+using only open metadata. Its research vocabulary is an example profile, not
+required UXDL syntax.
+
+The optional, non-normative slices experiment is documented in:
+
+[`35_UXDL_0.1_Slices_Extension.md`](../profiles/slices.md)
+
+Its example is:
+
+[`subscription.uxdl.yaml`](../examples/team-workspace/slices/subscription.uxdl.yaml)
+
+Slices are stored under `extensions` and do not change UXDL 0.1 conformance.
+The current core validator preserves the extension while validating its
+underlying actors, screens, states, actions, and relations.
+
+Large UXDL projects may use the optional packaging profile documented in:
+
+[`37_UXDL_0.1_Multi_File_Project_Profile.md`](../profiles/multi-file.md)
+
+The profile adds a manifest and source modules at the tooling layer. It does
+not change screen, state, action, relation, or fully qualified reference
+semantics. Project-aware tools must assemble and validate the complete document;
+ordinary UXDL 0.1 tools may consume the generated single-file export.
+
+The standalone editor and visualizer is:
+
+the prototype editor
+
+## 15. Versioning
+
+UXDL remains in `0.x` while the team tests authoring, visualization, review, and handoff with real users.
+
+- Minor `0.x` releases may change structure.
+- Documents MUST declare their version.
+- The editor MUST reject unsupported versions instead of silently reinterpreting them.
+- A `1.0` release requires validated adoption evidence, stable migration rules, and a documented compatibility policy.
+
+
+---
+# File: profiles/slices.md
+---
+
+# UXDL 0.1 Slices Extension
+
+> **Status:** Optional Phase 0 experiment. This extension does not change the
+> UXDL 0.1 core syntax in `02_The_Specification.md`.
+
+## 1. Purpose
+
+A slice connects a familiar natural-language story, journey, task, analysis, or
+technical scope to existing UXDL 0.1 behavior.
+
+The initial job is:
+
+> For this story or task, show which behavior matters, what remains ambiguous,
+> and what context a human or coding agent needs.
+
+Users should not need to maintain ordered lists of fully qualified relation
+addresses. They provide concise intent, prerequisites, screen anchors, and
+acceptance criteria. AI and editor tooling propose or maintain exact behavior
+coverage for review.
+
+## 2. Compact form
+
+```yaml
+extensions:
+  uxdl_slices:
+    version: "0.1"
+    slices:
+      cancel_subscription:
+        type: story
+        name: Cancel Subscription
+        actor: workspace_owner
+        intent: Stop future renewal while retaining paid access.
+        prerequisites:
+          signed_in: User is signed in.
+          active_subscription: The subscription is active.
+        screens: [billing]
+        acceptance:
+          open_review: Selecting Cancel Subscription opens cancellation_review.
+          choose_reason: The user can select a cancellation reason.
+          dismiss_review: Dismiss closes cancellation_review without changing the subscription.
+          confirm_cancellation: Confirm immediately disables future renewal.
+          retain_access: Paid access remains until the current period ends.
+          send_email: Send the cancellation email within 10 seconds of confirmation.
+```
+
+The compact string is the default acceptance form. Authors do not need YAML
+block-scalar syntax such as `>-`.
+
+An individual criterion MAY use expanded form only when it needs additional
+context:
+
+```yaml
+acceptance:
+  send_email:
+    statement: Send the cancellation email within 10 seconds of confirmation.
+    priority: required
+    technical_reference: docs/cancellation-email-rfc.md
+```
+
+## 3. Structural vocabulary
+
+### 3.1 Flexible IDs
+
+The following are project-defined IDs and SHOULD use lowercase `snake_case`:
+
+- `cancel_subscription`: slice ID;
+- `signed_in`: prerequisite ID;
+- `open_review`: acceptance-criterion ID.
+
+Their names and statements are free text.
+
+### 3.2 Standard fields
+
+| Field | Requirement |
+| --- | --- |
+| `type` | Required free-text classification with recommended values |
+| `name` | Required human-readable slice name |
+| `actor` | Required for `story` by default; references a declared UXDL actor |
+| `intent` | Required for `story`; natural-language outcome |
+| `prerequisites` | Optional dictionary of stable IDs to compact statements or expanded objects |
+| `screens` | Required non-empty list of declared UXDL screen IDs |
+| `acceptance` | Optional dictionary for `story` criteria (supported/round-trippable for v0.1 compatibility; optional narrative/verification context for new authoring) |
+| `tags` | Optional list of free-text tags for filtering and organization |
+| `external_refs` | Optional project-management or documentation references |
+| `coverage` | Optional machine-generated exact UXDL references |
+| `metadata` | Optional open context |
+
+Recommended `type` values are:
+
+- `story`;
+- `journey`;
+- `task`;
+- `technical`;
+- `analysis`.
+
+Custom values are preserved and SHOULD warn rather than fail core parsing.
+Templates MAY require different fields by type. For example, a technical slice
+does not need a human actor or product intent.
+
+## 4. Screen anchors, not entry paths
+
+`screens` states where the requirement is initially located or exposed:
+
+```yaml
+screens: [billing]
+```
+
+It is not an exhaustive list of every screen affected by the story and not a
+manually authored navigation path. UXDL 0.1 already describes how screens are
+connected.
+
+If the same requirement is available from several screens, list each anchor:
+
+```yaml
+screens: [billing, account_settings]
+```
+
+The editor may navigate backward and forward from these anchors, resolve
+acceptance statements against existing actions and relations, and propose
+missing behavior. All affected screens are calculated as coverage rather than
+manually repeated in `screens`.
+
+## 5. Requirement ownership and authority
+
+Requirements do not move wholesale into slices. Slices are scopes, lenses, and
+traceability mechanisms over behavior, not competing specification authorities.
+
+### The Slice Authority Invariant
+
+> **A Slice scopes, references, and may summarize specification. It must not carry product behavior that has no authoritative home elsewhere.**
+
+- **Atomic/cross-screen observable product behavior** must be authoritative on the nearest applicable Screen / State / Action / Relation `metadata.requirements`, or in an explicitly referenced external authoritative source.
+- **Slice acceptance remains supported and round-trippable** for UXDL 0.1 compatibility.
+- **Optional narrative / story verification context**: In new authoring workflows, Slice acceptance is treated as optional story-level verification context, not mandatory product specification.
+- **Authoring guardrail**: New editor UI must not encourage moving canonical requirements into Slice acceptance.
+- **Deterministic compilation**: internal-task Flow compilation derives behavior exclusively from canonical UXDL elements and relations; it must not depend on interpreting Slice acceptance prose.
+
+### Element-level requirements (canonical behavioral truth)
+
+Put an atomic requirement on the nearest screen, state, action, or relation it
+constrains:
+
+```yaml
+screens:
+  billing:
+    name: Billing
+    metadata:
+      requirements:
+        show_renewal_date: Show the active plan and renewal date.
+    actions:
+      start_cancellation:
+        metadata:
+          requirements:
+            owner_only: Only workspace owners may start cancellation.
+```
+
+### Slice-level criteria (story scope and verification pointers)
+
+Keep actor intent and criteria that describe the complete story or cross several
+elements on the slice:
+
+```yaml
+intent: Stop future renewal while retaining paid access.
+acceptance:
+  retain_access: Paid access remains until the current period ends.
+```
+
+Slice acceptance criteria serve as human-readable story summaries and verification
+checklists. They do NOT replace element-level requirements or become a second
+canonical specification source of truth.
+
+### No duplication rule
+
+Do not copy a slice criterion into every affected element. Generated coverage
+and backlinks make it visible from those elements. If one statement can be
+owned precisely by one element, prefer element metadata and let the slice refer
+to it. Legacy acceptance criteria remain round-trippable for backwards
+compatibility, but are never presented as a competing canonical product truth.
+
+## 6. Generated coverage
+
+Coverage is tool-maintained exact traceability. It may be hidden or collapsed
+in normal authoring:
+
+```yaml
+coverage:
+  generated_from_revision: 7
+  acceptance:
+    open_review:
+      - billing.actions.start_cancellation
+      - billing.actions.start_cancellation.relations.review_opened
+      - cancellation_review
+    confirm_cancellation:
+      - cancellation_review.actions.confirm_cancellation
+      - cancellation_review.actions.confirm_cancellation.relations.success
+    retain_access:
+      - cancellation_review.actions.confirm_cancellation.relations.success
+    send_email:
+      - cancellation_review.actions.confirm_cancellation.relations.success
+```
+
+Coverage references use the fully qualified addresses already defined by UXDL
+0.1. These dot-separated addresses are UXDL conventions, not generic YAML
+syntax.
+
+Coverage MAY be omitted from a clean authoring projection, but an approved
+portable artifact SHOULD retain enough information to reproduce the mapping or
+declare that it requires regeneration.
+
+## 7. Screen inspector aggregation
+
+Selecting a screen should assemble four clearly labeled sources:
+
+1. **Direct requirements:** metadata on the screen.
+2. **Owned behavior:** requirements on its states, actions, and outgoing
+   relations.
+3. **Connected behavior:** relevant incoming relations and their conditions.
+4. **Related slices:** prerequisites and acceptance criteria whose anchors or
+   generated coverage include the screen or its descendants.
+
+Example:
+
+```text
+Billing
+
+Direct requirements
+• Show the plan and renewal date.
+
+Action requirements
+• Only workspace owners may start cancellation.
+
+Related slice: Cancel Subscription
+• Opens cancellation review.
+• Confirm disables future renewal.
+• Paid access remains until period end.
+
+Linked delivery
+• BILL-142 — Cancellation implementation
+• MSG-38 — Cancellation email
+```
+
+Every item displays its source. Slice-level context must not appear to be direct
+screen metadata.
+
+## 8. AI generation and approval
+
+Given a natural-language story, an AI-assisted editor should:
+
+1. create or update one concise slice;
+2. split compound acceptance paragraphs into stable atomic criteria;
+3. resolve the actor, prerequisites, and screen anchors against existing UXDL;
+4. match each criterion to existing screens, states, actions, and relations;
+5. propose missing 0.1 elements rather than silently inventing approved
+   behavior;
+6. show a readable flow and exact coverage diff;
+7. ask only material product questions;
+8. apply the behavior and coverage changes after approval;
+9. regenerate task, test, document, and coding-agent projections from the
+   approved slice.
+
+AI should specifically challenge ambiguous language. In the cancellation
+example:
+
+- “immediately cancel” may mean disable renewal immediately or remove access;
+- “Cancel” inside a confirmation modal may mean Dismiss;
+- cancellation reason may be optional or required;
+- provider failure and timeout behavior may be missing;
+- an email “within 10 seconds” needs a controllable enqueue, provider-acceptance,
+  or inbox-delivery definition.
+
+## 9. External tasks and technical work
+
+Slices may carry lightweight external references:
+
+```yaml
+external_refs:
+  - provider: github
+    id: BILL-142
+    relationship: implements
+  - provider: github
+    id: MSG-38
+    relationship: enables
+```
+
+Project-management tools remain authoritative for assignee, estimate, sprint,
+and live status.
+
+Use these boundaries:
+
+- user-visible behavior belongs in UXDL screens, actions, states, relations, and
+  slice acceptance;
+- backend or third-party effects caused by an interaction belong in the nearest
+  action/relation metadata and link to a technical RFC;
+- a technical slice may collect multiple affected UXDL elements without
+  pretending to be a user story;
+- pure infrastructure work with no behavior impact does not require a UXDL
+  slice;
+- email, push, and in-app notifications may be user-visible surfaces, while
+  queue, retry, provider, and delivery mechanics stay in technical documents.
+
+## 10. Validation
+
+Core UXDL 0.1 validation runs first and is unchanged.
+
+Optional slice validation can deterministically check:
+
+- extension version and structural types;
+- slice, prerequisite, and acceptance IDs;
+- required fields for recognized slice types;
+- actor and screen references;
+- compact or expanded acceptance values;
+- external-reference structure;
+- generated coverage references;
+- whether coverage revision is stale.
+
+Deterministic warnings may report:
+
+- criterion without approved coverage;
+- anchor screen absent from all generated coverage;
+- coverage that references a deleted element;
+- external task linked to an older approved revision.
+
+Template or AI review remains advisory:
+
+- missing permission-denied, abandonment, failure, timeout, or recovery behavior;
+- ambiguous prerequisites;
+- compound or untestable acceptance criteria;
+- contradictions between local requirements and slice criteria;
+- technical SLAs that the product cannot directly guarantee.
+
+`Valid` means the slice and its references are structurally reliable. It does
+not mean the story is complete, correct, or ready to build.
+
+## 11. Slice, flow, story, and view
+
+The terms remain distinct:
+
+```text
+Slice = the bounded context/scope relevant to a question or work item
+Story = a slice type describing actor, intent, and acceptance
+Flow  = a deterministic behavioral journey projection derived from UXDL
+View  = primary editor projections (Document, Canvas, Flow)
+```
+
+In the UXDL Editor architecture:
+- `Document`, `Canvas`, and `Flow` are the three primary synchronized top-level views.
+- `Slice` is a shared scope filter (a dropdown selector) applied across all three views, NOT a fourth top-level view. Selecting a slice filters/highlights relevant behavior in Document, Canvas, and Flow without creating disconnected data or mutating canonical UXDL truth.
+
+One slice may contain several behavioral paths. Several slices may reference the
+same screen without owning or duplicating it.
+
+## 12. Adoption boundary
+
+The slices extension should remain optional until testing shows that it:
+
+- maps natural-language stories onto 0.1 behavior with acceptable correction
+  effort;
+- makes task scope clearer than a conventional ticket;
+- improves coding-agent context retrieval;
+- keeps screen-level requirements discoverable;
+- handles overlapping stories without confusing users;
+- creates enough value to justify maintaining coverage links.
+
+If users do not use slice views or prefer sending the original story directly
+to a coding agent, keep UXDL 0.1 as a flow format and do not expand the core.
+
+
+---
+# File: profiles/multi-file.md
+---
+
+# UXDL 0.1 Multi-File Project Profile
+
+> **Status:** Public-editor alpha contract. This profile packages multiple UXDL
+> source modules as one logical project without changing UXDL 0.1 behavior or
+> reference syntax.
+
+## 1. Why this exists
+
+A useful product specification can become too large for one file even when the
+UXDL structure remains correct. Splitting by feature or concern should improve
+navigation, ownership, AI retrieval, and change review without creating several
+independent sources of truth.
+
+The profile therefore separates:
+
+- the **project**, which owns product identity, root context, module membership,
+  and presentation settings;
+- **modules**, which own addressable actors, screens, groups, or one extension
+  namespace;
+- the **assembled UXDL document**, which is a deterministic portable export and
+  remains valid UXDL 0.1.
+
+The editor presents one project. Files are an authoring and integration
+boundary, not separate user journeys.
+
+## 2. Project manifest
+
+The conventional manifest name is `uxdl.project.yaml`:
+
+```yaml
+uxdl_project: "0.1"
+uxdl: "0.1"
+app: uxdl.dev
+title: Public Editor Alpha
+
+metadata:
+  owner: product
+  entry_screens: [landing_page]
+
+modules:
+  - id: public_experience
+    file: flows/public.uxdl.yaml
+  - id: editor
+    file: flows/editor.uxdl.yaml
+  - id: product_slices
+    file: slices/product.slices.uxdl.yaml
+
+layout:
+  direction: left_to_right
+```
+
+Reserved manifest fields are:
+
+| Field | Requirement |
+| --- | --- |
+| `uxdl_project` | Required profile version; currently `"0.1"` |
+| `uxdl` | Required assembled UXDL version; currently `"0.1"` |
+| `app` | Optional product or service name |
+| `title` | Optional project name |
+| `metadata` | Optional open root context |
+| `modules` | Required ordered list of explicit module declarations |
+| `layout` | Optional project-level presentation data |
+
+Module order makes assembled output deterministic. It MUST NOT imply navigation,
+priority, or requirement precedence.
+
+## 3. Modules
+
+A module is a partial source artifact with an explicit identity:
+
+```yaml
+uxdl_module: "0.1"
+id: editor
+
+screens:
+  local_editor:
+    name: Free Local UXDL Editor
+    type: page
+    actions:
+      open_property:
+        relations:
+          property_sidebar:
+            to: property_sidebar
+
+  property_sidebar:
+    name: Element Property Sidebar
+    type: overlay
+    parent: local_editor
+```
+
+A module MAY contribute:
+
+- `actors`;
+- `screens`;
+- `groups`;
+- one complete namespace below `extensions`.
+
+`id` MUST match the corresponding manifest declaration. Root product identity,
+root metadata, and layout remain in the manifest so they have one owner.
+
+The initial profile deliberately excludes overrides, inheritance, patches,
+recursive imports, and YAML anchors across files.
+
+## 4. Ownership and references
+
+Every actor, screen, group, and slice ID has exactly one source owner in the
+assembled project. Duplicate definitions are errors even when their content is
+identical.
+
+References remain the short UXDL 0.1 IDs and addresses:
+
+```yaml
+to: property_sidebar
+```
+
+```text
+local_editor.actions.open_property.relations.property_sidebar
+```
+
+Authors do not prefix references with a filename or module ID. The project
+resolver builds one global index and resolves cross-file references after all
+declared modules load. Moving an element between modules therefore does not
+change its UXDL address.
+
+One module MUST own a complete extension namespace. For example, a dedicated
+module may own `extensions.uxdl_slices`. Splitting one extension namespace
+across several modules is deferred until that extension defines deterministic
+merge semantics.
+
+## 5. File rules
+
+For the initial public editor:
+
+- module paths are relative to the manifest and use `/` separators;
+- absolute paths, URLs, globs, `..`, symlinks, and files outside the project
+  package are rejected;
+- every file is declared explicitly and appears once;
+- paths are compared case-sensitively for portable behavior;
+- missing, duplicate, cyclic, or undeclared modules are errors;
+- YAML aliases and custom executable tags remain disabled;
+- aggregate project limits apply across the manifest and all modules.
+
+Remote modules, package registries, and Git dependencies require separate trust,
+locking, availability, and supply-chain design and are not part of this profile.
+
+## 6. Composition and validation
+
+Composition is deterministic:
+
+1. parse and validate the manifest;
+2. resolve and parse every declared module within resource limits;
+3. verify module identities and single ownership;
+4. assemble `actors`, `screens`, `groups`, and owned extension namespaces;
+5. validate every parent, actor, group, state, relation, slice, and coverage
+   reference against the global index;
+6. produce an assembled UXDL 0.1 document or fail without partial success.
+
+Validation reports both the stable UXDL address and its source file. A
+cross-file error should read like:
+
+```text
+flows/editor.uxdl.yaml · local_editor.actions.open_property.relations.sidebar
+Target screen "property_sidebar" is not declared by this project.
+```
+
+Core UXDL validity and project-package validity are separate results. A valid
+module set can still carry advisory product questions.
+
+## 7. Import, persistence, and export
+
+The public editor uses one internal project model from the beginning, even when
+the user opens one file.
+
+Supported paths are:
+
+- open one `.uxdl.yaml` file as a one-module project;
+- open `uxdl.project.yaml` plus its declared files;
+- open an entire workspace directory via folder import (`webkitdirectory`);
+- import or export a `.uxdl.zip` package containing manifest, modules, and binary image assets (`assets/previews/*`);
+- selective file inclusion: when importing a folder, ZIP archive, or batch of files, the editor presents an interactive file picker modal allowing users to preview discovered paths, toggle presets (`All`, `YAML Only`, `Deselect All`), uncheck unwanted files (e.g. `README.md`, logs), and choose between replacing or merging into the active project;
+- export one assembled `.uxdl.yaml` for tools that only understand UXDL 0.1;
+- export readable Markdown or a scoped slice without changing module ownership.
+
+Folder access through browser `webkitdirectory` directory selection or drag-and-drop provides native directory import. Multi-select file pickers and `.uxdl.zip` archive import/export remain the portable fallbacks.
+
+IndexedDB stores project metadata and each exact source file separately. Canvas,
+document, slice, and inspector views operate on the assembled in-memory index.
+Saving a visual edit writes only the module that owns the changed element.
+
+## 8. AI and MCP behavior
+
+An AI or MCP client should request a project index before reading full modules.
+It can then retrieve or patch only:
+
+- the owner module of an address;
+- modules needed for dependency closure;
+- a named slice and its generated coverage;
+- validation findings and affected references.
+
+Every patch names the expected project revision and source module. The system
+rejects stale writes, duplicate ownership, broken references, and silent moves
+between modules. Exact diffs remain reviewable by humans.
+
+## 9. Public-editor alpha boundary
+
+The first implementation includes:
+
+- the internal multi-file project model;
+- one-file compatibility;
+- manifest/module loading and deterministic assembly;
+- project-aware validation with source locations;
+- IndexedDB persistence;
+- assembled single-file export;
+- ZIP import/export fallback.
+
+Git synchronization, remote modules, concurrent editing, cloud file-level
+history, and AI generation remain outside the public-editor alpha.
+
+## 10. Dogfooding migration
+
+The editable uxdl.dev product requirement is
+`examples/team-workspace/uxdl.project.yaml` plus the explicitly declared source modules. Its
+assembled `examples/team-workspace/uxdl.project.yaml` is a generated single-file
+read/export artifact, never a second manually maintained PRD. Regenerate it
+from `uxdl.dev/` with the canonical TypeScript CLI:
+
+```bash
+npm run compose -- ../product --out ../examples/team-workspace/uxdl.project.yaml
+```
+
+The same CLI is the byte-for-byte freshness oracle and never
+repairs a stale target while checking it:
+
+```bash
+npm run compose -- ../product --check ../examples/team-workspace/uxdl.project.yaml
+```
+
+Suggested initial modules are:
+
+```text
+examples/team-workspace/uxdl.project.yaml
+product/flows/public.uxdl.yaml
+product/flows/auth.uxdl.yaml
+product/flows/editor.uxdl.yaml
+product/flows/pro_workspace.uxdl.yaml
+product/slices/product.slices.uxdl.yaml
+```
+
+This sequencing prevents a manual split from weakening validation before the
+tooling intended to protect it exists.
+
+
+---
+# File: profiles/agent-harness.md
+---
+
+# UXDL-First AI Agent Development Harness
+
+> **Status:** Initial operating contract for review and incremental automation.
+> The objective is reliable product implementation with the smallest capable
+> model, not maximum agent autonomy.
+
+## 1. Objective
+
+Use UXDL as the canonical product-behavior input for software delivery while
+giving implementation agents only the context they need. A frontier reasoning
+agent should spend time on ambiguous product, design, format, architecture, and
+security decisions. Once those decisions are frozen into a bounded task contract,
+a lighter model should be able to implement or test them without reinterpreting
+the whole product.
+
+The harness optimizes for:
+
+- traceability from product behavior to code and tests;
+- smaller context and lower token use for bounded workers;
+- explicit stop conditions instead of plausible invention;
+- reproducible validation and review;
+- safe coordination across specification and application work areas in one
+  private monorepo.
+
+It does not assume that valid YAML guarantees a complete or correct product.
+
+## 2. Contract hierarchy
+
+Agents use these sources in order:
+
+1. `agents.md` — operating and safety rules;
+2. one claimed `Tasks/*.md` file — execution authority and scope;
+3. `examples/team-workspace/uxdl.project.yaml` plus its declared modules — editable canonical
+   product behavior;
+4. `examples/team-workspace/uxdl.project.yaml` — active generated single-file
+   projection, never a hand-edited source;
+5. `uxdl.dev/design.md` — approved interaction and presentation decisions;
+6. linked technical/security/testing documents — implementation constraints;
+7. current source code and tests — implementation state, never product authority.
+
+When sources conflict, the worker stops. It does not choose the convenient source.
+The thinker reconciles the conflict before implementation resumes.
+
+## 3. Monorepo work-area boundaries
+
+| Work area | Path | Owns |
+| --- | --- | --- |
+| Specification and operations | workspace root | UXDL standard, canonical product YAML, design/technical contracts, agent harness, tasks, experiments |
+| Application | `uxdl.dev/` | Next.js website, editor, application tests, application dependencies |
+
+Both areas belong to the workspace root Git repository. `uxdl.dev/` must not have
+its own `.git` directory or be converted into a submodule. A task still identifies
+one primary work area so builders receive narrow context and allowed paths.
+Cross-area work requires explicit allowed paths but produces one workspace commit.
+
+Run Git commands from the workspace root. Run package, test, build, and development
+commands from `uxdl.dev/` so Next.js and test workers use the correct process
+context. Task status always lives in the root `Tasks/` directory.
+
+The monorepo remote is private. Publishing the standard to a separate public
+repository is a deferred release workflow that requires an explicit allowlist;
+application code, internal notes, experiments, tasks, and private operational
+documents are excluded unless the owner explicitly approves them.
+
+### 3.1 Generated UXDL artifact placement
+
+When an agent generates UXDL (forward PRD conversion, candidate generation, or observed reverse-projection), it must strictly follow `docs/guides/uxdl-file-placement-and-generation-protocol.md`:
+
+- **Canonical Product (`uxdl.dev`)**: Place in `product/flows/<module>.uxdl.yaml`, declare in `examples/team-workspace/uxdl.project.yaml`, and compile to `examples/team-workspace/uxdl.project.yaml`.
+- **External Apps & Experiments**: Place in `docs/experiments/<feature>.uxdl.yaml` (or `docs/experiments/<app_name>/`). Never place in `product/`.
+- **Pinned Baselines**: Place in `baseline/<name>.uxdl.yaml` only with verification and cataloging in `baseline/BASELINE.md`.
+- **Root Pollution**: Never write `.yaml` files in the repository root or scratch directories.
+
+## 4. Agent roles and capability routing
+
+### 4.1 Thinker — frontier reasoning
+
+Use for:
+
+- product, UXDL format, schema, architecture, security, and experiment decisions;
+- requirements with material ambiguity or competing valid approaches;
+- cross-cutting changes that affect several product surfaces or repositories;
+- decomposition, risk analysis, and task-contract creation;
+- final go/no-go or iterate decisions.
+
+The thinker should not consume frontier capacity implementing a deterministic
+task once the contract is complete. It creates or refines a `todo` task instead.
+
+### 4.2 Builder — light or standard model
+
+Use a **light** builder only when all light-readiness gates in Section 7 pass. Use
+a **standard** builder for bounded work that requires local code reasoning but no
+new product or architecture decision.
+
+Builders:
+
+- implement only allowed paths;
+- preserve unknown UXDL metadata;
+- run listed checks;
+- record evidence and deviations;
+- stop when the contract is insufficient.
+
+### 4.3 Reviewer — independent model or deterministic tooling
+
+The reviewer compares the diff and evidence with the same frozen task contract.
+It does not reward extra scope. Deterministic checks should replace model review
+wherever possible.
+
+Use frontier review for security, irreversible migrations, canonical format
+changes, and high-impact architecture. A light reviewer can verify mechanical docs,
+tests, styling tokens, or bounded component behavior with exact assertions.
+
+### 4.4 Orchestrator
+
+The orchestrator validates readiness, prepares context, dispatches one task per
+worker, collects evidence, and stops invalid runs. It must not silently fill an
+open product decision merely to keep workers busy.
+
+## 5. Task contract
+
+Every implementation-ready task should declare:
+
+```yaml
+status: "todo"
+domain: "FE"
+assignee: "unassigned"
+model_tier: "light"        # light | standard | frontier
+task_type: "implementation" # decision | implementation | test | review | docs
+primary_repo: "uxdl.dev"    # work-area routing: root | uxdl.dev
+risk: "low"                 # low | medium | high
+depends_on: ["TASK-ID"]
+```
+
+Its body must contain:
+
+1. **Outcome** — one observable result, not a broad theme.
+2. **Product contract** — exact slice IDs and UXDL addresses, or an explicit
+   statement that the operational task changes no shipping product behavior.
+3. **Design and technical contract** — exact approved `design.md` decisions and
+   relevant technical sections in one heading; explicitly state when either side
+   is not applicable.
+4. **Allowed paths** — files or narrow directories the worker may change.
+5. **Forbidden scope** — adjacent features that must remain untouched.
+6. **Acceptance criteria** — observable and testable statements.
+7. **Required checks** — exact commands and browser viewports when relevant.
+8. **Stop conditions** — ambiguity, conflicts, missing APIs, unexpected files,
+   failing baseline, or required scope expansion.
+9. **Handoff evidence** — changed files, checks, screenshots/DOM assertions,
+    limitations, and commit SHA when authorized.
+
+Templates live under `.agents/templates/`.
+
+## 6. Scoped UXDL context package
+
+A light worker should not read a 1,000-line product contract and decide what is
+relevant. The thinker or a deterministic packager creates:
+
+```text
+.agents/context/<task-id>.context.yaml
+```
+
+The generated package contains:
+
+```yaml
+task_id: internal-task
+canonical_source: examples/team-workspace/uxdl.project.yaml # multi-file manifest
+source_revision: <git-sha-or-content-hash>
+slices: [public_editor_alpha]
+addresses:
+  - local_editor
+  - property_sidebar
+requirements: []
+dependencies:
+  actors: []
+  screens: []
+  incoming_relations: []
+  outgoing_relations: []
+design_sections: ["7. Selection and inspector navigation"]
+technical_sections: []
+unresolved_questions: []
+```
+
+The task declares the exact requested scope in frontmatter. Both lists are
+required and at least one must be non-empty; IDs and addresses are exact strings,
+not search terms. `expected_source_hash` is optional, but when present it must be
+the lowercase SHA-256 hash of the canonical file and a mismatch rejects the run.
+
+```yaml
+context_scope:
+  slices: [public_editor_alpha]
+  addresses:
+    - local_editor
+    - property_sidebar
+  expected_source_hash: <optional lowercase sha256>
+```
+
+The deterministic packager preserves the selected slice definitions and includes
+the screen owners of declared addresses, slice screen anchors, all recursive
+screen parents, and one relation hop entering or leaving those seed screens. It
+includes the full owned state/action/relation content of those selected screens
+and every actor referenced by a selected slice or selected-screen action. It does
+not expand generated slice coverage, infer semantic relevance, or traverse a
+second relation hop. A missing reference, alias, malformed YAML, duplicate scope
+entry, stale expected hash, or unsafe output path rejects the run.
+
+The package is a generated projection, not a second editable PRD. It must include
+the source revision, fail when requested IDs are missing, include the minimum
+dependency closure, and be regenerated when the generated compatibility source
+changes. Workers may quote it, but product changes go back to
+`examples/team-workspace/uxdl.project.yaml` and its owning module first.
+
+Until the packager exists, the thinker writes the same scoped fields directly into
+the task. Do not compensate by asking every light worker to interpret the full YAML.
+
+## 7. Light-model readiness gate
+
+A task may be marked `model_tier: "light"` only when every answer is **yes**:
+
+| Gate | Question |
+| --- | --- |
+| Product | Are all required behaviors already explicit in UXDL? |
+| Design | Are all relevant interaction and visual decisions approved? |
+| Architecture | Does the task use an existing pattern without choosing a new architecture? |
+| Scope | Is the outcome bounded to one feature and a narrow allowed-path set? |
+| Safety | Does it avoid auth, billing, secrets, destructive data changes, migrations, and security policy? |
+| Verification | Are deterministic checks and expected results specified? |
+| Reversibility | Is the change easy to review and revert? |
+| Baseline | Is the starting test/build state known and passing? |
+
+If any answer is no, route to a standard/frontier task or return it to the thinker.
+
+Typical light tasks:
+
+- extract approved tokens into shared primitives;
+- add a bounded component state from an approved design;
+- add unit/browser tests for already-defined behavior;
+- update deterministic documentation paths or generated examples;
+- implement a fully specified CLI with fixtures and exact output.
+
+Never route these to a light model without frontier review:
+
+- new UXDL syntax or validation semantics;
+- product completeness or prioritization decisions;
+- auth, billing, permissions, privacy, or data migration;
+- dependency/library selection;
+- changes spanning several unresolved user workflows;
+- destructive Git/filesystem operations.
+
+## 8. Execution lifecycle
+
+### Stage A — Think and freeze
+
+1. Classify the request as exploration, decision, implementation, test, or review.
+2. Claim the matching task.
+3. Resolve product/design/technical questions.
+4. Update the editable UXDL project and `design.md` where required.
+5. Create bounded worker tasks and mark model tier.
+6. Freeze the scoped context revision and baseline checks.
+
+### Stage B — Worker preflight
+
+Before editing, the worker records:
+
+- claimed task and assignee;
+- primary work area and workspace-root branch/status;
+- required files present;
+- context revision matches canonical source;
+- baseline checks pass or the exact pre-existing failures;
+- no stop condition is already true.
+
+If preflight fails, the run is `INVALID_TASK_CONTEXT`; no implementation begins.
+
+### Stage C — Implement
+
+- Change only allowed paths.
+- Use existing patterns and approved UI primitives.
+- Do not “improve” adjacent behavior.
+- Report a requirement gap instead of inventing a default.
+- Keep canonical IDs in tests, accessible names, or trace comments where the task
+  specifies them; avoid scattering long UXDL paths through presentation code.
+
+### Stage D — Verify
+
+Run checks in the task from cheapest to most expensive:
+
+1. focused unit tests or validators;
+2. type and lint checks;
+3. focused integration/browser contract;
+4. production build or performance gate when required.
+
+For UI work, verification includes DOM/accessibility assertions and a small fixed
+viewport matrix. A pretty screenshot alone is not evidence of behavior.
+
+### Stage E — Review and handoff
+
+The handoff reports:
+
+- outcome against each acceptance criterion;
+- changed files and any unexpected file;
+- commands and results;
+- browser assertions and screenshots when applicable;
+- deviations, remaining risk, and whether product/design docs changed;
+- workspace commit SHA only when commits were authorized.
+
+The task returns to the thinker if implementation exposes a product decision. It is
+marked done only when every required check passes and no unapproved scope remains.
+
+## 9. Fail-closed conditions
+
+Stop without implementation when:
+
+- a task is unclaimed, already assigned, or lacks allowed paths;
+- a required UXDL ID/slice is missing, stale, duplicated, or contradictory;
+- `design.md` labels a required decision unresolved;
+- the request would change product behavior without a canonical UXDL update;
+- the workspace Git root and application command working directory are confused;
+- baseline validation fails in an affected area and the task does not authorize a
+  repair;
+- secrets, user data, auth, billing, security, or destructive operations enter a
+  light task;
+- completing the task requires modifying forbidden paths or installing an
+  unapproved dependency.
+
+## 10. Measuring whether the harness works
+
+Track per task:
+
+- model tier and retries;
+- input/output tokens when provider telemetry is available;
+- context package bytes/lines versus full canonical input;
+- first-pass acceptance checks passed;
+- defects found in independent review;
+- unplanned files changed;
+- requirement questions escalated rather than guessed;
+- time and cost to accepted completion.
+
+The harness is valuable when lighter workers complete bounded tasks with equal or
+better correctness and lower correction cost—not merely when their first response
+uses fewer tokens.
+
+## 11. Initial automation backlog
+
+The first automation should be deterministic and separately tasked:
+
+1. validate enriched task frontmatter and required sections;
+2. extract a UXDL slice/address dependency closure into a revisioned context pack;
+3. verify allowed-path diffs across the correct monorepo work area;
+4. run task-declared checks and capture machine-readable evidence;
+5. reject stale context before dispatch.
+
+Do not build an autonomous multi-agent platform before these contracts work on a
+small set of real editor tasks.

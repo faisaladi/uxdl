@@ -1,0 +1,85 @@
+uxdl_module: '0.1'
+id: team
+screens:
+  team_dashboard:
+    name: Workspace Dashboard
+    type: page
+    metadata:
+      prd_ref: PRD-TEAM-01
+    states:
+      default:
+        name: Default View
+      empty_state:
+        name: No Projects Created
+    actions:
+      view_members:
+        name: Navigate to Members
+        actor: member
+        relations:
+          members_nav:
+            to: member_list
+            path: happy
+      view_billing:
+        name: Navigate to Billing
+        actor: admin
+        relations:
+          billing_nav:
+            to: billing_overview
+            path: happy
+  member_list:
+    name: Team Members Directory
+    type: page
+    metadata:
+      prd_ref: PRD-TEAM-02
+      requirements:
+        invite_by_email:
+          statement: Admins can invite team members directly via email invitation.
+    states:
+      default:
+        name: Members Table Loaded
+    actions:
+      open_invite_modal:
+        name: Open Invite Modal
+        actor: admin
+        relations:
+          modal_open:
+            to: invite_modal
+            path: happy
+  invite_modal:
+    name: Invite Colleague Modal
+    type: modal
+    metadata:
+      prd_ref: PRD-TEAM-03
+    states:
+      default:
+        name: Form Ready
+      seat_limit_reached:
+        name: Seat Limit Exceeded
+    actions:
+      send_invitation:
+        name: Send Email Invite
+        actor: admin
+        relations:
+          invite_success:
+            to: member_list
+            path: happy
+            when: seats available
+          seat_limit:
+            to: invite_modal
+            state: seat_limit_reached
+            path: error
+            when: no available seats
+      upgrade_for_seats:
+        name: Upgrade Subscription to Add Seats
+        actor: admin
+        relations:
+          upgrade_nav:
+            to: plan_selection
+            path: fallback
+      dismiss_modal:
+        name: Cancel Invite
+        actor: admin
+        relations:
+          close:
+            to: member_list
+            path: cancel

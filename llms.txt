@@ -1,0 +1,43 @@
+# UXDL: User Experience Description Language
+> Machine-readable specification language for observable product behavior.
+
+## Overview
+UXDL defines product behavior through screens, states, actions, and relations. It serves as a deterministic behavioral contract between humans and autonomous AI coding agents.
+
+## Core Documentation
+- [Overview & Principles](spec/overview.md): Core problem, hypothesis, and principles
+- [Normative Specification](spec/specification.md): Canonical grammar, syntax, addresses, and semantics
+- [Versioning & Compatibility](spec/versioning.md): Versioning rules and change classifications
+
+## Extension Profiles
+- [Slices Extension](profiles/slices.md): Grouping flows into traceable delivery slices and user journeys
+- [Multi-File Project Profile](profiles/multi-file.md): Packaging modular UXDL files into a composed project
+- [AI Agent Harness](profiles/agent-harness.md): Thinker, Builder, and Reviewer task execution contracts
+- [PRD Profile](profiles/prd-profile.md): Completeness rules for turning PRDs into verifiable contracts
+- [Readiness Profile](profiles/readiness.md): Grading implementation readiness and tracking specification gaps
+
+## Canonical Examples
+- [Team Workspace Reference Project](examples/team-workspace/uxdl.project.yaml): Multi-file SaaS reference project
+
+## Syntax Quick Reference
+```yaml
+uxdl: "0.1"
+app: AppName
+actors:
+  actor_id: { name: "Human Name", type: human | system | external }
+screens:
+  screen_id:
+    name: "Screen Title"
+    type: page | modal | sheet | drawer | section
+    states:
+      state_id: { name: "State Title" }
+    actions:
+      action_id:
+        name: "Action Title"
+        actor: actor_id
+        relations:
+          relation_id:
+            to: target_screen | target_screen.states.state_id
+            path: happy | error | guard | cancel | retry | edge | fallback
+            when: optional condition description
+```

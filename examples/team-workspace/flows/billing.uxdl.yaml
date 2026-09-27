@@ -1,0 +1,111 @@
+uxdl_module: '0.1'
+id: billing
+screens:
+  billing_overview:
+    name: Subscription & Billing Overview
+    type: page
+    metadata:
+      prd_ref: PRD-BILL-01
+      requirements:
+        self_serve_cancellation:
+          statement: Workspace admins can downgrade or cancel their paid subscription.
+    states:
+      free_plan:
+        name: Free Starter Plan
+      pro_active:
+        name: Active Pro Plan
+    actions:
+      click_upgrade:
+        name: Click Upgrade Plan
+        actor: admin
+        relations:
+          plan_nav:
+            to: plan_selection
+            path: happy
+      click_cancel:
+        name: Cancel Pro Subscription
+        actor: admin
+        relations:
+          cancel_nav:
+            to: cancel_survey
+            path: cancel
+  plan_selection:
+    name: Plan Comparison & Pricing
+    type: page
+    metadata:
+      prd_ref: PRD-BILL-02
+    states:
+      monthly_view:
+        name: Monthly Billing Option
+      annual_view:
+        name: Annual Billing Option
+    actions:
+      select_pro_plan:
+        name: Select Pro Tier
+        actor: admin
+        relations:
+          checkout_nav:
+            to: checkout_gateway
+            path: happy
+      cancel_selection:
+        name: Return to Overview
+        actor: admin
+        relations:
+          back_nav:
+            to: billing_overview
+            path: cancel
+  checkout_gateway:
+    name: Payment Gateway Redirect
+    type: page
+    metadata:
+      prd_ref: PRD-BILL-03
+    states:
+      processing:
+        name: Payment Pending
+    actions:
+      confirm_payment:
+        name: 'Webhook: Payment Succeeded'
+        actor: billing_system
+        relations:
+          pro_activated:
+            to: billing_overview
+            state: pro_active
+            path: happy
+      fail_payment:
+        name: 'Webhook: Payment Failed'
+        actor: billing_system
+        relations:
+          payment_failed:
+            to: plan_selection
+            path: error
+      leave_checkout:
+        name: Cancel Payment
+        actor: admin
+        relations:
+          exit_payment:
+            end: true
+            path: cancel
+  cancel_survey:
+    name: Cancellation Survey
+    type: modal
+    metadata:
+      prd_ref: PRD-BILL-04
+    states:
+      default:
+        name: Retention Questionnaire
+    actions:
+      confirm_cancellation:
+        name: Confirm Downgrade to Free
+        actor: admin
+        relations:
+          downgraded:
+            to: billing_overview
+            state: free_plan
+            path: happy
+      keep_plan:
+        name: Keep Subscription
+        actor: admin
+        relations:
+          retain:
+            to: billing_overview
+            path: cancel

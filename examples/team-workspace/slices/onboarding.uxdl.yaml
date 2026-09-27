@@ -1,0 +1,55 @@
+uxdl_module: '0.1'
+id: onboarding_slice
+extensions:
+  uxdl_slices:
+    slices:
+      visitor_to_active_user:
+        name: Visitor Registration & Onboarding Journey
+        type: journey
+        actor: visitor
+        metadata:
+          flow_hint:
+            start: landing
+            goal:
+            - team_dashboard
+        screens:
+        - landing
+        - signup
+        - team_dashboard
+        acceptance:
+          visits_landing: Visitor lands on marketing page and opens signup form.
+          submits_registration: Visitor submits valid registration details.
+          lands_on_dashboard: New user is redirected to the active team dashboard.
+        coverage:
+          acceptance:
+            visits_landing:
+            - landing
+            - landing.actions.click_signup
+            submits_registration:
+            - signup
+            - signup.actions.submit_signup
+            lands_on_dashboard:
+            - team_dashboard
+      invite_team_member:
+        name: Invite Colleague Story
+        type: story
+        actor: admin
+        metadata:
+          covers_requirements:
+          - invite_by_email
+          depends_on: []
+        screens:
+        - team_dashboard
+        - member_list
+        - invite_modal
+        acceptance:
+          opens_modal: Admin navigates to member list and triggers invite modal.
+          dispatches_invite: Admin enters email and dispatches invitation.
+        coverage:
+          acceptance:
+            opens_modal:
+            - team_dashboard.actions.view_members
+            - member_list.actions.open_invite_modal
+            - invite_modal
+            dispatches_invite:
+            - invite_modal.actions.send_invitation

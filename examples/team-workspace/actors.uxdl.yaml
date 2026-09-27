@@ -1,0 +1,23 @@
+uxdl_module: '0.1'
+id: actors
+actors:
+  visitor:
+    name: Visitor
+    type: human
+    metadata:
+      description: Unauthenticated user visiting the website.
+  member:
+    name: Team Member
+    type: human
+    metadata:
+      description: Standard authenticated member of a workspace.
+  admin:
+    name: Workspace Admin
+    type: human
+    metadata:
+      description: Member with billing and team management permissions.
+  billing_system:
+    name: Billing Provider
+    type: system
+    metadata:
+      description: External payment processing platform.

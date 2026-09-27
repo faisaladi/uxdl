@@ -1,0 +1,236 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://uxdl.dev/schema/uxdl-0.1.schema.json",
+  "title": "UXDL 0.1 structural schema",
+  "description": "A deliberately small structural envelope. Metadata remains open.",
+  "type": "object",
+  "required": ["uxdl", "screens"],
+  "properties": {
+    "uxdl": {
+      "const": "0.1"
+    },
+    "app": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "metadata": {},
+    "actors": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/id"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/actor"
+      }
+    },
+    "screens": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "$ref": "#/$defs/id"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/screen"
+      }
+    },
+    "groups": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/id"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/group"
+      }
+    },
+    "layout": {
+      "type": "object"
+    },
+    "extensions": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "actor": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "metadata": {}
+      },
+      "additionalProperties": true
+    },
+    "state": {
+      "oneOf": [
+        {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "metadata": {}
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "relation": {
+      "type": "object",
+      "properties": {
+        "to": {
+          "$ref": "#/$defs/id"
+        },
+        "state": {
+          "$ref": "#/$defs/id"
+        },
+        "external": {
+          "type": "string"
+        },
+        "end": {
+          "const": true
+        },
+        "when": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "metadata": {}
+      },
+      "oneOf": [
+        {
+          "required": ["to"],
+          "not": {
+            "anyOf": [
+              {
+                "required": ["external"]
+              },
+              {
+                "required": ["end"]
+              }
+            ]
+          }
+        },
+        {
+          "required": ["external"],
+          "not": {
+            "anyOf": [
+              {
+                "required": ["to"]
+              },
+              {
+                "required": ["end"]
+              }
+            ]
+          }
+        },
+        {
+          "required": ["end"],
+          "not": {
+            "anyOf": [
+              {
+                "required": ["to"]
+              },
+              {
+                "required": ["external"]
+              }
+            ]
+          }
+        }
+      ],
+      "additionalProperties": true
+    },
+    "action": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "actor": {
+          "$ref": "#/$defs/id"
+        },
+        "relations": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/id"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/relation"
+          }
+        },
+        "metadata": {}
+      },
+      "additionalProperties": true
+    },
+    "screen": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "parent": {
+          "$ref": "#/$defs/id"
+        },
+        "states": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/id"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/state"
+          }
+        },
+        "actions": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/id"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/action"
+          }
+        },
+        "metadata": {}
+      },
+      "additionalProperties": true
+    },
+    "group": {
+      "type": "object",
+      "required": ["name", "screens"],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "screens": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "metadata": {}
+      },
+      "additionalProperties": true
+    }
+  }
+}

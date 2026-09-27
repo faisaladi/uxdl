@@ -1,0 +1,100 @@
+uxdl_module: '0.1'
+id: auth
+screens:
+  landing:
+    name: Public Landing Page
+    type: page
+    metadata:
+      prd_ref: PRD-AUTH-01
+    states:
+      default:
+        name: Default
+    actions:
+      click_login:
+        name: Click Log In
+        actor: visitor
+        relations:
+          login_nav:
+            to: login
+            path: happy
+      click_signup:
+        name: Click Sign Up
+        actor: visitor
+        relations:
+          signup_nav:
+            to: signup
+            path: happy
+  login:
+    name: Log In Screen
+    type: page
+    metadata:
+      prd_ref: PRD-AUTH-02
+    states:
+      default:
+        name: Default
+      invalid_credentials:
+        name: Invalid Credentials
+    actions:
+      submit_credentials:
+        name: Submit Credentials
+        actor: visitor
+        relations:
+          success:
+            to: team_dashboard
+            path: happy
+            when: credentials are valid
+          failure:
+            to: login
+            state: invalid_credentials
+            path: error
+            when: credentials invalid
+      click_forgot:
+        name: Forgot Password
+        actor: visitor
+        relations:
+          forgot_nav:
+            to: forgot_password
+            path: fallback
+  signup:
+    name: Sign Up Screen
+    type: page
+    metadata:
+      prd_ref: PRD-AUTH-03
+    states:
+      default:
+        name: Default
+      email_taken:
+        name: Email Already In Use
+    actions:
+      submit_signup:
+        name: Submit Sign Up Form
+        actor: visitor
+        relations:
+          signup_success:
+            to: team_dashboard
+            path: happy
+            when: email is available
+          signup_conflict:
+            to: signup
+            state: email_taken
+            path: error
+            when: email already registered
+  forgot_password:
+    name: Password Reset Request
+    type: page
+    metadata:
+      prd_ref: PRD-AUTH-04
+    states:
+      default:
+        name: Default
+      email_dispatched:
+        name: Reset Email Dispatched
+    actions:
+      submit_reset_email:
+        name: Send Reset Link
+        actor: visitor
+        relations:
+          dispatched:
+            to: forgot_password
+            state: email_dispatched
+            path: happy
